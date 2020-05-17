@@ -3,6 +3,9 @@ checks:
   complex-logic:
     config:
       threshold: 7
+  similar-code:
+    config:
+      threshold: 60
 plugins:
   eslint:
     enabled: true
@@ -15,6 +18,6 @@ plugins:
     config:
       languages:
         javascript:
-          mass_threshold: 50
+          mass_threshold: 60
 exclude_patterns:
   - '**/node_modules/'

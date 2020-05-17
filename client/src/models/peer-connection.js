@@ -129,9 +129,7 @@ const PeerConnection = (config = {}) => {
       userId = _id
     }
 
-    const getUserId = () => {
-      return userId
-    }
+    const getUserId = () => userId
 
     return {
       close,
