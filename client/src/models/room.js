@@ -1,3 +1,5 @@
+import { filter } from 'ramda'
+
 const DEFAULT = {
   roomId: null,
   name: null,
@@ -25,7 +27,15 @@ const Room = (config = {}) => {
       }
       return Room({ ...state, connections })
     },
-    setUser: (user) => {
+    removeConnection: connectionId => {
+      const connections = filter(connection => connection.getId() !== connectionId, state.connections)
+      return Room({ ...state, connections})
+    },
+    removeUser: userId => {
+      const users = filter(user => user.getId() !== userId, state.users)
+      return Room({ ...state, users})
+    },
+    setUser: user => {
       const users = {
         ...state.users,
         [user.getId()]: user,
@@ -34,25 +44,34 @@ const Room = (config = {}) => {
     },
     getUser: userId => state.users[userId],
     getUsers: () => {
-      const host = state.host ? {
-        [state.host.getId()] : {
-          id: state.host.getId(),
-          name: state.host.getName(),
-        }
-      } : {}
+      const host = state.host
+        ? {
+            [state.host.getId()]: {
+              id: state.host.getId(),
+              name: state.host.getName(),
+            },
+          }
+        : {}
       return {
         ...host,
-        ...Object.values(state.users).reduce((acc, user) => ({
-          ...acc,
-          [user.getId()]: {
-            id: user.getId(),
-            name: user.getName(),
-          }
-        }), {})
+        ...Object.values(state.users).reduce(
+          (acc, user) => ({
+            ...acc,
+            [user.getId()]: {
+              id: user.getId(),
+              name: user.getName(),
+            },
+          }),
+          {}
+        ),
       }
     },
     getConnections: () => Object.values(state.connections),
     getConnection: connectionId => state.connections[connectionId],
+    getFirstConnection: () => {
+      const [head, ..._] = Object.values(state.connections)
+      return head
+    },
   }
 }
 

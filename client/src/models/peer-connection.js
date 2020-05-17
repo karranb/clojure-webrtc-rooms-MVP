@@ -21,7 +21,7 @@ const PeerConnection = (config = {}) => {
       ...DEFAULT(),
       ..._config,
     }
-    const { pc, id, sendSocketMessage, onMessage, onOpen } = state
+    const { pc, id, sendSocketMessage, onMessage, onOpen, onClose } = state
 
     const updateOnOpen = fn => {
       if (channel) {
@@ -43,11 +43,16 @@ const PeerConnection = (config = {}) => {
       return constructor({ ...state, onMessage: fn })
     }
 
+    const updateOnClose = fn => {
+      return constructor({ ...state, onClose: fn })
+    }
+
     pc.ondatachannel = ({ channel: _channel }) => {
       channel = _channel
       return constructor({ ...state })
         .updateOnMessage(onMessage)
         .updateOnOpen(onOpen)
+        .updateOnClose(onClose)
     }
 
     pc.oniceconnectionstatechange = e => {
@@ -55,9 +60,12 @@ const PeerConnection = (config = {}) => {
         const data = {
           title: TITLES.CONNECTION_CLOSED,
           connectionId: id,
-          roomId,
+          roomId: state.roomId,
         }
         sendSocketMessage(data)
+        if (onClose) {
+          onClose(userId, id)
+        }
       }
     }
 
@@ -110,7 +118,7 @@ const PeerConnection = (config = {}) => {
 
     const getId = () => id
 
-    const closeChannel = () => {
+    const close = () => {
       pc.close()
     }
 
@@ -129,7 +137,7 @@ const PeerConnection = (config = {}) => {
 
 
     return {
-      closeChannel,
+      close,
       getId,
       getUserId,
       newChannelRequest,
@@ -137,6 +145,7 @@ const PeerConnection = (config = {}) => {
       sendPeerMessage,
       setChannelResponse,
       setUserId,
+      updateOnClose,
       updateOnMessage,
       updateOnOpen,
     }

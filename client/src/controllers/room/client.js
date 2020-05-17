@@ -14,6 +14,11 @@ const Client = ({ $game, stateManager, sendSocketMessage, setSocketListener }) =
     appendChildren($usersContainer, ...users)
   }
 
+  const quit = () => {
+    stateManager.getRoom().getFirstConnection().close()
+    stateManager.webStateMachineSend('CLOSE')
+  }
+
   const onMessage = ({ data }) => {
     const parsedData = JSON.parse(data)
     switch (parsedData.title) {
@@ -46,13 +51,16 @@ const Client = ({ $game, stateManager, sendSocketMessage, setSocketListener }) =
           })
           .updateOnOpen(() => {
           })
+          .updateOnClose(() => {
+            stateManager.webStateMachineSend('CLOSE')
+          })
         stateManager.updateRoom(room => room.setConnection(peerConnection))
         return
     }
   }
 
   setSocketListener(onMessage)
-  RoomScreen({ $game, renderUsers })
+  RoomScreen({ $game, renderUsers, quit })
 }
 
 export default Client

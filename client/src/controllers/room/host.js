@@ -15,9 +15,20 @@ const Host = ({ $game, stateManager, sendSocketMessage, setSocketListener }) => 
       })
   }
 
+  const quit = (title, message) => {
+    stateManager
+      .getRoom()
+      .getConnections()
+      .forEach(connection => {
+        connection.close(title, message)
+      })
+    const data = { title: TITLES.CLOSE_ROOM, id: stateManager.getRoom().getId() }
+    sendSocketMessage(data)
+    stateManager.webStateMachineSend('CLOSE')
+  }
+
   const renderUsers = () => {
     const $usersContainer = innerHTML('', document.querySelector('.usersContainers'))
-
     const users = Object.values(stateManager.getRoom().getUsers()).map(user =>
       compose(innerText(user.name), () => createElement('p'))()
     )
@@ -56,6 +67,10 @@ const Host = ({ $game, stateManager, sendSocketMessage, setSocketListener }) => 
               id: user.getId(),
             })
           })
+          .updateOnClose((userId, connectionId) => {
+            stateManager.updateRoom(room => room.removeConnection(connectionId).removeUser(userId))
+            renderUsers()
+          })
 
         stateManager.updateRoom(room => room.setConnection(peerConnection))
         return
@@ -63,7 +78,7 @@ const Host = ({ $game, stateManager, sendSocketMessage, setSocketListener }) => 
   }
 
   setSocketListener(onMessage)
-  RoomScreen({ $game, renderUsers })
+  RoomScreen({ $game, renderUsers, quit })
 }
 
 export default Host
