@@ -15,6 +15,8 @@ export const appendChildren = (container, ...children) => {
   return container
 }
 
+export const querySelector = (query, $el = document) => $el.querySelector(query)
+
 export const createElement = (el, attributes) => {
   const props = attributes || {}
   const { id, class: className } = props
@@ -28,8 +30,6 @@ export const addListener = curry((listener, fn, $el) => {
   $el.addEventListener(listener, fn)
   return $el
 })
-
-export const querySelector = selector => document.querySelector(selector)
 
 export const createButton = (text, attributes, onClick) =>
   compose(addListener('click', onClick || (() => {})), innerText(text), () =>

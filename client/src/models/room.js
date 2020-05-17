@@ -1,4 +1,4 @@
-import { filter } from 'ramda'
+import { filter, head, omit } from 'ramda'
 
 const DEFAULT = {
   roomId: null,
@@ -28,11 +28,11 @@ const Room = (config = {}) => {
       return Room({ ...state, connections })
     },
     removeConnection: connectionId => {
-      const connections = filter(connection => connection.getId() !== connectionId, state.connections)
+      const connections = omit([connectionId], state.connections)
       return Room({ ...state, connections})
     },
     removeUser: userId => {
-      const users = filter(user => user.getId() !== userId, state.users)
+      const users = omit([userId], state.users)
       return Room({ ...state, users})
     },
     setUser: user => {
@@ -68,10 +68,12 @@ const Room = (config = {}) => {
     },
     getConnections: () => Object.values(state.connections),
     getConnection: connectionId => state.connections[connectionId],
-    getFirstConnection: () => {
-      const [head, ..._] = Object.values(state.connections)
-      return head
-    },
+    getFirstConnection: () => head(Object.values(state.connections)),
+    
+    // {
+    //   const [head, ..._] = Object.values(state.connections)
+    //   return head
+    // },
   }
 }
 

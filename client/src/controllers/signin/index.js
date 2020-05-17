@@ -13,33 +13,13 @@ const SigninController = ({ $game, stateManager, sendSocketMessage, setSocketLis
   const sendSetName = name => {
     stateManager.updateUser(user => user.setName(name))
     sendGetId()
-    // stateManager.setUser(stateManager.getUser().setName(name)) 
-    // stateManager.webStateMachineSend('CONFIRM')
-    // const data = {
-    //   title: TITLES.SET_NAME,
-    //   name,
-    // }
-    // sendSocketMessage(data)
   }
-
-  // const onMessage = ({ data }) => {
-    // const parsedData = JSON.parse(data)
-    // switch (parsedData.title) {
-    //   case TITLES.SET_NAME:
-    //     stateManager.setUser(stateManager.getUser().setName(parsedData.name))
-    //     stateManager.webStateMachineSend('CONFIRM')
-    //     return
-    // }
-  // }
-
-  // setSocketListener(onMessage)
 
   const onMessage = ({ data }) => {
     const parsedData = JSON.parse(data)
     switch (parsedData.title) {
       case TITLES.GET_ID:
         stateManager.updateUser(user => user.setId(parsedData.id))
-        // stateManager.setUser(stateManager.getUser().setName(parsedData.name))
         stateManager.webStateMachineSend('CONFIRM')
         return
     }

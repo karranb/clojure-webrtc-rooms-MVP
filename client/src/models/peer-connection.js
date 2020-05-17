@@ -36,7 +36,6 @@ const PeerConnection = (config = {}) => {
     const updateOnMessage = fn => {
       if (channel) {
         channel.onmessage = e => {
-          console.log('Channel message', channel, e.data)
           fn(e)
         }
       }
@@ -126,7 +125,6 @@ const PeerConnection = (config = {}) => {
       channel.send(JSON.stringify({ title, ...messageObject }))
     }
 
-
     const setUserId = _id => {
       userId = _id
     }
@@ -134,7 +132,6 @@ const PeerConnection = (config = {}) => {
     const getUserId = () => {
       return userId
     }
-
 
     return {
       close,
