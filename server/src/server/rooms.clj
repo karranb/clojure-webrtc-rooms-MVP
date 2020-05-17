@@ -62,8 +62,8 @@
   (let [{
         room-id :roomId
         offer :offer
+        connection-id :connectionId
       } data
-      connection-id (uuid)
       host (:host (get-room room-id))
       connection (new-connection-data channel offer)
     ]
@@ -93,7 +93,7 @@
       (do
         (set-room id (new-room-data name channel id))
         (set-client channel {:room-id id})
-        (message channel :create-room {:id id})
+        (message channel :create-room {:id id :name name})
       )
       (message channel :create-room-fail))))
 
@@ -109,7 +109,7 @@
       (println "not host"))))
 
 (defn get-rooms-set []
-  {:rooms (map #(select-keys % [:id :name :users]) (vals @rooms))})
+  {:rooms (map #(select-keys % [:id :name]) (vals @rooms))})
 
 (defn get-rooms [channel]
   (message channel :get-rooms (get-rooms-set)))

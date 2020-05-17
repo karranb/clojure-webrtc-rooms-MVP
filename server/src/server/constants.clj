@@ -2,7 +2,8 @@
 
 (def titles {
   :connected "CONNECTED"
-  :set-name "SET-NAME"
+  ; :set-name "SET-NAME"
+  :get-id "GET-ID"
   :create-room "CREATE-ROOM"
   :create-room-fail "CREATE-ROOM-FAIL"
   :close-room "CLOSE-ROOM"

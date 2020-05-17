@@ -18,12 +18,18 @@
 (defn unset-client [channel]
   (swap! clients dissoc channel))
 
-(defn set-name [channel data]
-  (set-client channel {:name (:name data)})
-  (message channel :set-name {:name (:name data)}))
+; (defn set-name [channel data]
+;   (set-client channel {:name (:name data)})
+;   (message channel :set-name {:name (:name data)}))
 
 (defn get-client-data [channel key]
   (get (get @clients channel) key))
+
+(defn get-id [channel]
+  (let [
+      id (get-client-data channel :id)
+    ]
+    (message channel :get-id {:id id})))
 
 (defn get-client [channel]
   (get @clients channel))
@@ -35,7 +41,8 @@
     ]
     (println data-title)
     (cond
-      (= data-title (:set-name titles)) (set-name channel data)
+      ; (= data-title (:set-name titles)) (set-name channel data)
+      (= data-title (:get-id titles)) (get-id channel)
       (= data-title (:create-room titles)) (create-room channel (:name data) set-client)
       (= data-title (:close-room titles)) (close-room channel (:id data) set-client)
       (= data-title (:get-rooms titles)) (get-rooms channel)
