@@ -1,10 +1,12 @@
-import { filter, head, omit } from 'ramda'
+import { assoc, head, map, mergeRight, omit, prop, values } from 'ramda'
 
 const DEFAULT = {
   roomId: null,
   name: null,
   connections: {},
   users: {},
+  banList: {},
+  size: null,
 }
 
 const Room = (config = {}) => {
@@ -21,59 +23,32 @@ const Room = (config = {}) => {
     setName: name => Room({ ...state, name }),
     getName: () => state.name,
     setConnection: connection => {
-      const connections = {
-        ...state.connections,
-        [connection.getId()]: connection,
-      }
+      const connections = assoc(connection.getId(), connection, state.connections)
       return Room({ ...state, connections })
     },
     removeConnection: connectionId => {
       const connections = omit([connectionId], state.connections)
-      return Room({ ...state, connections})
+      return Room({ ...state, connections })
     },
     removeUser: userId => {
       const users = omit([userId], state.users)
-      return Room({ ...state, users})
-    },
-    setUser: user => {
-      const users = {
-        ...state.users,
-        [user.getId()]: user,
-      }
       return Room({ ...state, users })
     },
-    getUser: userId => state.users[userId],
+    setUser: user => {
+      const users = assoc(user.getId(), user, state.users)
+      return Room({ ...state, users })
+    },
+    getUser: userId => prop(userId, state.users),
     getUsers: () => {
       const host = state.host
-        ? {
-            [state.host.getId()]: {
-              id: state.host.getId(),
-              name: state.host.getName(),
-            },
-          }
+        ? assoc(state.host.getId(), { id: state.host.getId(), name: state.host.getName() }, {})
         : {}
-      return {
-        ...host,
-        ...Object.values(state.users).reduce(
-          (acc, user) => ({
-            ...acc,
-            [user.getId()]: {
-              id: user.getId(),
-              name: user.getName(),
-            },
-          }),
-          {}
-        ),
-      }
+      const otherUsers = map(user => ({ id: user.getId(), name: user.getName() }), state.users)
+      return mergeRight(host, otherUsers)
     },
-    getConnections: () => Object.values(state.connections),
-    getConnection: connectionId => state.connections[connectionId],
-    getFirstConnection: () => head(Object.values(state.connections)),
-    
-    // {
-    //   const [head, ..._] = Object.values(state.connections)
-    //   return head
-    // },
+    getConnections: () => values(state.connections),
+    getConnection: connectionId => prop(connectionId, state.connections),
+    getFirstConnection: () => head(values(state.connections)),
   }
 }
 

@@ -15,6 +15,7 @@ const DEFAULT = () => ({
 const PeerConnection = (config = {}) => {
   let channel = null
   let userId = null
+  let address = null
 
   const constructor = (_config = {}) => {
     const state = {
@@ -104,7 +105,10 @@ const PeerConnection = (config = {}) => {
         .catch(console.log)
 
       pc.onicecandidate = e => {
-        if (e.candidate) return
+        if (e.candidate) {
+          address = e.candidate.address
+          return
+        }
         const data = {
           title: TITLES.CONNECTION_ANSWER,
           answer: pc.localDescription.sdp,
@@ -131,8 +135,11 @@ const PeerConnection = (config = {}) => {
 
     const getUserId = () => userId
 
+    const getAddress = () => address
+
     return {
       close,
+      getAddress,
       getId,
       getUserId,
       newChannelRequest,

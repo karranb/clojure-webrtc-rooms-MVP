@@ -3,7 +3,7 @@ import ClientController from './client'
 import HostController from './host'
 
 const RoomController = (props) => {
-  const Controller = stateManager.getUser().getIsHost() ? HostController : ClientController
+  const Controller = props.stateManager.getUser().getIsHost() ? HostController : ClientController
   Controller(props)
 }
 
