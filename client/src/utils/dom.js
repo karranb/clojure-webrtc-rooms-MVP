@@ -1,4 +1,4 @@
-import { compose, curry } from 'ramda'
+import { always, compose, curry } from 'ramda'
 
 export const innerHTML = curry((value, $el) => {
   $el.innerHTML = value
@@ -35,3 +35,8 @@ export const createButton = (text, attributes, onClick) =>
   compose(addListener('click', onClick || (() => {})), innerText(text), () =>
     createElement('button', attributes)
   )()
+
+export const createP = (text, attributes) => compose(
+  innerText(text),
+  always(createElement('p', attributes))
+)()

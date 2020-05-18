@@ -1,7 +1,7 @@
 (ns server.rooms
   (:require [server.socket :refer [message]])
   (:require [server.constants :refer [user-room-status]])
-  (:require [server.helpers :refer [uuid]]))
+  (:require [server.helpers :refer [uuid parse-int]]))
 
 (def rooms (atom {}))
 
@@ -85,13 +85,13 @@
     (set-connection room-id connection-id content)
     (message (:user (get-connection room-id connection-id)) :connection-answer data)))
 
-(defn create-room [channel name set-client]
+(defn create-room [channel name size set-client]
   (let [
       id (uuid)
     ]
     (if (false? (user-has-room channel))
       (do
-        (set-room id (new-room-data name channel id))
+        (set-room id (new-room-data name channel id) {:size (parse-int size)})
         (set-client channel {:room-id id})
         (message channel :create-room {:id id :name name})
       )
@@ -109,7 +109,7 @@
       (println "not host"))))
 
 (defn get-rooms-set []
-  {:rooms (map #(select-keys % [:id :name]) (vals @rooms))})
+  {:rooms (map #(merge (select-keys % [:id :name :size]) {:connections (+ (count (:users %)) 1)}) (vals @rooms))})
 
 (defn get-rooms [channel]
   (message channel :get-rooms (get-rooms-set)))

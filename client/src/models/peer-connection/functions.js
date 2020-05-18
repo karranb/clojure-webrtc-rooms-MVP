@@ -1,6 +1,7 @@
 import { v4 as uuidv4 } from 'uuid'
 
 import { WEBRTC_SERVER, TITLES } from '_constants'
+import PeerConnection from '.'
 
 const server = { urls: WEBRTC_SERVER }
 
@@ -17,8 +18,9 @@ const functionsWrapper = (config = {}) => {
     ...DEFAULT(),
     ...config,
   }
-  const { pc, id, sendSocketMessage, onMessage, onOpen, onClose, mutablesFunctions } = state
+  const { pc, id, sendSocketMessage, onMessage, onOpen, onClose, onReceiveRequest, mutablesFunctions } = state
   const { getChannel, getUserId, setAddress, setChannel } = mutablesFunctions
+
   const updateOnOpen = fn => {
     const channel = getChannel()
     if (channel) {
@@ -40,9 +42,11 @@ const functionsWrapper = (config = {}) => {
     return functionsWrapper({ ...state, onMessage: fn })
   }
 
-  const updateOnClose = fn => {
-    return functionsWrapper({ ...state, onClose: fn })
-  }
+  const updateOnClose = fn => 
+   functionsWrapper({ ...state, onClose: fn })
+
+  const updateOnReceiveRequest = fn => 
+   functionsWrapper({ ...state, onReceiveRequest: fn })
 
   pc.ondatachannel = ({ channel: _channel }) => {
     setChannel(_channel)
@@ -104,7 +108,9 @@ const functionsWrapper = (config = {}) => {
 
     pc.onicecandidate = e => {
       if (e.candidate) {
-        setAddress(e.candidate.address)
+        if (onReceiveRequest) {
+          onReceiveRequest(e.candidate.address)
+        }
         return
       }
       const data = {
@@ -119,12 +125,14 @@ const functionsWrapper = (config = {}) => {
 
   const getId = () => id
 
-  const close = () => {
+  const close = () => { 
     pc.close()
+    return functionsWrapper({ ...state })
   }
 
   const sendPeerMessage = (title, messageObject = {}) => {
     getChannel().send(JSON.stringify({ title, ...messageObject }))
+    return functionsWrapper({ ...state })
   }
 
   return {
@@ -138,6 +146,7 @@ const functionsWrapper = (config = {}) => {
     updateOnClose,
     updateOnMessage,
     updateOnOpen,
+    updateOnReceiveRequest,
   }
 }
 
