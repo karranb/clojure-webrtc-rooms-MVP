@@ -21,7 +21,7 @@ const CreateRoomController = ({ $game, stateManager, sendSocketMessage, setSocke
   }
 
   setSocketListener(onMessage)
-  CreateRoomScreen({ $game, createRoom })
+  CreateRoomScreen({ $game, createRoom, stateManager })
 }
 
 export default CreateRoomController
