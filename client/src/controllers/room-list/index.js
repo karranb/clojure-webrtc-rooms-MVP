@@ -13,13 +13,13 @@ const RoomListController = ({ $game, stateManager, sendSocketMessage, setSocketL
   }
 
   const handleReceivedRooms = rooms => {
-    console.log(rooms)
     const $roomsContainer = innerHTML('', document.querySelector('.roomsContainer'))
     const createOnPress = room => {
       const peerConnection = PeerConnection({ sendSocketMessage }).newChannelRequest(room.getId())
       stateManager.setRoom(room.setConnection(peerConnection))
       stateManager.webStateMachineSend('JOIN')
     }
+    console.log(rooms)
     rooms.forEach(({ name, id: roomId }) => {
       const room = Room({ name, roomId })
       appendChildren(

@@ -1,4 +1,4 @@
-import { assoc, head, map, mergeRight, omit, prop, values } from 'ramda'
+import { assoc, head, map, mergeRight, omit, prop, values, reduce } from 'ramda'
 
 const DEFAULT = {
   roomId: null,
@@ -36,6 +36,10 @@ const Room = (config = {}) => {
     },
     setUser: user => {
       const users = assoc(user.getId(), user, state.users)
+      return Room({ ...state, users })
+    },
+    setUsers: usersList => {
+      const users = reduce((acc, user) => assoc(user.getId(), user, acc), {}, usersList)
       return Room({ ...state, users })
     },
     getUser: userId => prop(userId, state.users),

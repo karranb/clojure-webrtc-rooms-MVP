@@ -49,10 +49,9 @@
     connection (get-connection room-id connection-id)
     user-channel (:user connection)]
     (if (= (:host room) channel)
-      (
+      (do
         (set-room room-id {:users (dissoc (get-users room-id) connection-id)})
-        (set-client user-channel {:joined-room-id nil})
-        )
+        (set-client user-channel {:joined-room-id nil}))
       (println "not a host"))))
 
 (defn remove-room [id]
@@ -106,7 +105,7 @@
         (remove-room id)
         (set-client channel {:room-id nil})
         (message channel :close-room))
-      (println "not host"))))
+      (println "not a host"))))
 
 (defn get-rooms-set []
   {:rooms (map #(merge (select-keys % [:id :name :size]) {:connections (+ (count (:users %)) 1)}) (vals @rooms))})

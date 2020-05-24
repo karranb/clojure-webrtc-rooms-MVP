@@ -1,7 +1,6 @@
 import { v4 as uuidv4 } from 'uuid'
 
 import { WEBRTC_SERVER, TITLES } from '_constants'
-import PeerConnection from '.'
 
 const server = { urls: WEBRTC_SERVER }
 

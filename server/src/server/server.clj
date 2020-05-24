@@ -12,6 +12,9 @@
 
 (def clients (atom {}))
 
+(defn get-client [channel]
+  (get @clients channel))  
+
 (defn set-client [channel & data]
   (swap! clients assoc channel (apply merge data)))
 
@@ -23,7 +26,7 @@
 ;   (message channel :set-name {:name (:name data)}))
 
 (defn get-client-data [channel key]
-  (get (get @clients channel) key))
+  (get (get-client channel) key))
 
 (defn get-id [channel]
   (let [
@@ -31,8 +34,6 @@
     ]
     (message channel :get-id {:id id})))
 
-(defn get-client [channel]
-  (get @clients channel))
 
 (defn handle-on-receive [channel data-str] 
   (let [
@@ -48,7 +49,7 @@
       (= data-title (:get-rooms titles)) (get-rooms channel)
       (= data-title (:connection-request titles)) (join-room-request channel data set-client)
       (= data-title (:connection-answer titles)) (join-room-accept channel data get-client)
-      (= data-title (:connection-closed titles)) (remove-connection channel data get-client)
+      (= data-title (:connection-closed titles)) (remove-connection channel data set-client)
       :else (println "OTHER TITLE", data-title))))
 
 (defn handle-on-close [channel status]

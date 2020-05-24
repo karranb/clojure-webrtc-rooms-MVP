@@ -30,10 +30,8 @@ const Client = ({ $game, stateManager, setSocketListener }) => {
         })
         return
       case PEER_TITLES.GET_USERS:
-        values(parsedData.users).forEach(parsedUser => {
-          const user = User({ id: parsedUser.id, name: parsedUser.name })
-          stateManager.updateRoom(room => room.setUser(user))
-        })
+        const users = values(parsedData.users).map(parsedUser => User({ id: parsedUser.id, name: parsedUser.name }))
+        stateManager.updateRoom(room => room.setUsers(users))
         renderUsers(stateManager)
         return
     }

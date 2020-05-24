@@ -20,9 +20,7 @@ const Host = ({ $game, stateManager, sendSocketMessage, setSocketListener }) => 
     stateManager
       .getRoom()
       .getConnections()
-      .forEach(connection => {
-        connection.close(title, message)
-      })
+      .forEach(connection => connection.close(title, message))
     const data = { title: TITLES.CLOSE_ROOM, id: stateManager.getRoom().getId() }
     sendSocketMessage(data)
     stateManager.webStateMachineSend('CLOSE')
@@ -58,6 +56,14 @@ const Host = ({ $game, stateManager, sendSocketMessage, setSocketListener }) => 
 
   const onClose = (userId, connectionId) => {
     stateManager.updateRoom(room => room.removeConnection(connectionId).removeUser(userId))
+    broadcastMessage(PEER_TITLES.GET_USERS, {
+      users: stateManager.getRoom().getUsers(),
+    })
+    sendSocketMessage({
+      title: TITLES.CONNECTION_CLOSED,
+      connectionId,
+      roomId: stateManager.getRoom().getId(),
+    })
     renderUsers(stateManager)
   }
 
