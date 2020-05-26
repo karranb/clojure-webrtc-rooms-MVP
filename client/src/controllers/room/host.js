@@ -7,13 +7,32 @@ import { curry } from 'ramda'
 import { renderUsers } from './functions'
 
 const Host = ({ $game, stateManager, sendSocketMessage, setSocketListener }) => {
+  const kick = userId => {
+    const room = stateManager.getRoom()
+    const user = room.getUser(userId)
+    const peerConnection = room.getConnection(user.getConnectionId())
+    peerConnection.close()
+    onClose(peerConnection, 'Kick')
+  }
+
+  const ban = userId => {
+    const room = stateManager.getRoom()
+    const user = room.getUser(userId)
+    const peerConnection = room.getConnection(user.getConnectionId())
+    stateManager.updateRoom(room => room.setBannedAddress(peerConnection.getAddress()))
+    peerConnection.close()
+    onClose(peerConnection, 'Banned')
+  }
+
+  const handleRenderUsers = () => {
+    renderUsers(stateManager, kick, ban)
+  }
+
   const broadcastMessage = (title, message) => {
     stateManager
       .getRoom()
       .getConnections()
-      .forEach(connection => {
-        connection.sendPeerMessage(title, message)
-      })
+      .forEach(connection => connection.sendPeerMessage(title, message))
   }
 
   const quit = (title, message) => {
@@ -30,13 +49,17 @@ const Host = ({ $game, stateManager, sendSocketMessage, setSocketListener }) => 
     const parsedData = JSON.parse(data)
     switch (parsedData.title) {
       case PEER_TITLES.STABILISH_CONNECTION:
-        const user = User({ name: parsedData.name, id: parsedData.id })
+        const user = User({
+          name: parsedData.name,
+          id: parsedData.id,
+          connectionId: peerConnection.getId(),
+        })
         stateManager.updateRoom(room => room.setUser(user))
         peerConnection.setUserId(parsedData.id)
         broadcastMessage(PEER_TITLES.GET_USERS, {
           users: stateManager.getRoom().getUsers(),
         })
-        renderUsers(stateManager)
+        handleRenderUsers()
         return
       case PEER_TITLES.GET_USERS:
         peerConnection.sendPeerMessage(EER_TITLES.GET_USERS, {
@@ -67,7 +90,7 @@ const Host = ({ $game, stateManager, sendSocketMessage, setSocketListener }) => 
       roomId: stateManager.getRoom().getId(),
       type,
     })
-    renderUsers(stateManager)
+    handleRenderUsers()
   }
 
   const handleForceClose = (peerConnection, type) => {
@@ -78,7 +101,7 @@ const Host = ({ $game, stateManager, sendSocketMessage, setSocketListener }) => 
   const onReceiveRequest = (address, peerConnection) => {
     const room = stateManager.getRoom()
     const size = room.getSize()
-    if (size <= Object.keys(room.getConnections()).length) {
+    if (size && size <= Object.keys(room.getConnections()).length) {
       handleForceClose(peerConnection, FORCED_CLOSE_TYPES.FULL)
       return
     }
@@ -104,7 +127,7 @@ const Host = ({ $game, stateManager, sendSocketMessage, setSocketListener }) => 
   }
 
   setSocketListener(onMessage)
-  RoomScreen({ $game, renderUsers: () => renderUsers(stateManager), quit })
+  RoomScreen({ $game, renderUsers: () => handleRenderUsers(), quit })
 }
 
 export default Host

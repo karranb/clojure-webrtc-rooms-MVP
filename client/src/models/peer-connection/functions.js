@@ -106,7 +106,7 @@ const functionsWrapper = (config = {}) => {
 
     pc.onicecandidate = e => {
       if (e.candidate) {
-        console.log('aqui', state, onReceiveRequest)
+        setAddress(e.candidate.address)
         if (onReceiveRequest) {
           onReceiveRequest(e.candidate.address)
         }
