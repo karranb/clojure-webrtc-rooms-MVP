@@ -44,6 +44,7 @@
   (let [{
       connection-id :connectionId
       room-id :roomId
+      type :type
     } data
     room (get-room room-id)
     connection (get-connection room-id connection-id)
@@ -51,6 +52,7 @@
     (if (= (:host room) channel)
       (do
         (set-room room-id {:users (dissoc (get-users room-id) connection-id)})
+        (message user-channel :connection-closed {:type type})
         (set-client user-channel {:joined-room-id nil}))
       (println "not a host"))))
 
@@ -87,12 +89,13 @@
 (defn create-room [channel name size set-client]
   (let [
       id (uuid)
+      parsed-size (parse-int size)
     ]
     (if (false? (user-has-room channel))
       (do
-        (set-room id (new-room-data name channel id) {:size (parse-int size)})
+        (set-room id (new-room-data name channel id) {:size parsed-size})
         (set-client channel {:room-id id})
-        (message channel :create-room {:id id :name name})
+        (message channel :create-room {:id id :name name :size parsed-size})
       )
       (message channel :create-room-fail))))
 

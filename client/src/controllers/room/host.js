@@ -1,4 +1,4 @@
-import { TITLES, PEER_TITLES } from '_constants'
+import { TITLES, PEER_TITLES, FORCED_CLOSE_TYPES } from '_constants'
 import RoomScreen from '_views/room'
 import PeerConnection from '_models/peer-connection'
 import User from '_models/user'
@@ -54,7 +54,9 @@ const Host = ({ $game, stateManager, sendSocketMessage, setSocketListener }) => 
     })
   }
 
-  const onClose = (userId, connectionId) => {
+  const onClose = (peerConnection, type) => {
+    const connectionId = peerConnection.getId()
+    const userId = peerConnection.getUserId()
     stateManager.updateRoom(room => room.removeConnection(connectionId).removeUser(userId))
     broadcastMessage(PEER_TITLES.GET_USERS, {
       users: stateManager.getRoom().getUsers(),
@@ -63,8 +65,26 @@ const Host = ({ $game, stateManager, sendSocketMessage, setSocketListener }) => 
       title: TITLES.CONNECTION_CLOSED,
       connectionId,
       roomId: stateManager.getRoom().getId(),
+      type,
     })
     renderUsers(stateManager)
+  }
+
+  const handleForceClose = (peerConnection, type) => {
+    onClose(peerConnection, type)
+    peerConnection.close()
+  }
+
+  const onReceiveRequest = (address, peerConnection) => {
+    const room = stateManager.getRoom()
+    const size = room.getSize()
+    if (size <= Object.keys(room.getConnections()).length) {
+      handleForceClose(peerConnection, FORCED_CLOSE_TYPES.FULL)
+      return
+    }
+    if (room.getBannedAddresses().includes(address)) {
+      handleForceClose(peerConnection, FORCED_CLOSE_TYPES.BANNED)
+    }
   }
 
   const onMessage = ({ data }) => {
@@ -72,10 +92,11 @@ const Host = ({ $game, stateManager, sendSocketMessage, setSocketListener }) => 
     switch (parsedData.title) {
       case TITLES.CONNECTION_REQUEST:
         const peerConnection = PeerConnection({ sendSocketMessage })
-          .newChannelResponse(parsedData.offer, parsedData.id)
           .updateOnMessage(e => onPeerMessage(peerConnection, e))
           .updateOnOpen(() => onOpen(peerConnection))
-          .updateOnClose(onClose)
+          .updateOnClose(() => onClose(peerConnection))
+          .updateOnReceiveRequest(address => onReceiveRequest(address, peerConnection))
+          .newChannelResponse(parsedData.offer, parsedData.id)
 
         stateManager.updateRoom(room => room.setConnection(peerConnection))
         return

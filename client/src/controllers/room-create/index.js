@@ -13,9 +13,10 @@ const CreateRoomController = ({ $game, stateManager, sendSocketMessage, setSocke
     const parsedData = JSON.parse(data)
     switch (parsedData.title) {
       case TITLES.CREATE_ROOM:
+        console.log(parsedData)
         stateManager.updateUser(user => user.setIsHost(true))
         stateManager.setRoom(
-          Room({ roomId: parsedData.id, name: parsedData.name, host: stateManager.getUser() })
+          Room({ roomId: parsedData.id, name: parsedData.name, host: stateManager.getUser(), size: parsedData.size })
         )
         stateManager.webStateMachineSend('CREATE')
         return

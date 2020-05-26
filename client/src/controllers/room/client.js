@@ -52,6 +52,9 @@ const Client = ({ $game, stateManager, setSocketListener }) => {
           })
         stateManager.updateRoom(room => room.setConnection(peerConnection))
         return
+      case TITLES.CONNECTION_CLOSED:
+        stateManager.webStateMachineSend('CLOSE')
+        return
     }
   }
 

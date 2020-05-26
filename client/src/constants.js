@@ -13,6 +13,12 @@ export const TITLES = {
   CONNECTION_CLOSED: 'CONNECTION-CLOSED',
 }
 
+export const FORCED_CLOSE_TYPES = {
+  KICKED: 'kicked',
+  BANNED: 'banned',
+  FULL: 'full',
+}
+
 export const PEER_TITLES = {
   STABILISH_CONNECTION: 'STABILISH-CONNECTION',
   GET_USERS: 'GET-USERS',

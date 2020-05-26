@@ -7,10 +7,9 @@
 ## WebRTC Client Available Messages
 
 ## ToDo
-- Room detail
 - Host ban control
-- Message System
 - Admins system
+- Message System
 - Signaling Server / host / clients validations
 - Client/Host: Throttling/Debounce
 - Design improvement

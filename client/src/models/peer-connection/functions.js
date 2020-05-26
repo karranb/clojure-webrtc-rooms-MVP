@@ -44,8 +44,7 @@ const functionsWrapper = (config = {}) => {
   const updateOnClose = fn => 
    functionsWrapper({ ...state, onClose: fn })
 
-  const updateOnReceiveRequest = fn => 
-   functionsWrapper({ ...state, onReceiveRequest: fn })
+  const updateOnReceiveRequest = fn => functionsWrapper({ ...state, onReceiveRequest: fn })
 
   pc.ondatachannel = ({ channel: _channel }) => {
     setChannel(_channel)
@@ -65,7 +64,7 @@ const functionsWrapper = (config = {}) => {
       }
       sendSocketMessage(data)
       if (onClose) {
-        onClose(getUserId(), id)
+        onClose()
       }
     }
   }
@@ -107,6 +106,7 @@ const functionsWrapper = (config = {}) => {
 
     pc.onicecandidate = e => {
       if (e.candidate) {
+        console.log('aqui', state, onReceiveRequest)
         if (onReceiveRequest) {
           onReceiveRequest(e.candidate.address)
         }

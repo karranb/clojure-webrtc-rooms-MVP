@@ -19,9 +19,8 @@ const RoomListController = ({ $game, stateManager, sendSocketMessage, setSocketL
       stateManager.setRoom(room.setConnection(peerConnection))
       stateManager.webStateMachineSend('JOIN')
     }
-    console.log(rooms)
-    rooms.forEach(({ name, id: roomId }) => {
-      const room = Room({ name, roomId })
+    rooms.forEach(({ name, id: roomId, size, connections: usersCount }) => {
+      const room = Room({ name, roomId, size, usersCount })
       appendChildren(
         $roomsContainer,
         RoomItem({

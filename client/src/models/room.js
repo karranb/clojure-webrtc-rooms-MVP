@@ -5,8 +5,9 @@ const DEFAULT = {
   name: null,
   connections: {},
   users: {},
-  banList: {},
+  bannedAddresses: new Set(),
   size: null,
+  usersCount: 0,
 }
 
 const Room = (config = {}) => {
@@ -42,6 +43,10 @@ const Room = (config = {}) => {
       const users = reduce((acc, user) => assoc(user.getId(), user, acc), {}, usersList)
       return Room({ ...state, users })
     },
+    setBannedAddress: address =>  {
+      const bannedAddresses = new Set([...state.bannedAddresses, address ])
+      return Room({ ...state, bannedAddresses })
+    },
     getUser: userId => prop(userId, state.users),
     getUsers: () => {
       const host = state.host
@@ -50,9 +55,12 @@ const Room = (config = {}) => {
       const otherUsers = map(user => ({ id: user.getId(), name: user.getName() }), state.users)
       return mergeRight(host, otherUsers)
     },
+    getUsersCount: () => state.usersCount,
+    getSize: () => state.size,
     getConnections: () => values(state.connections),
     getConnection: connectionId => prop(connectionId, state.connections),
     getFirstConnection: () => head(values(state.connections)),
+    getBannedAddresses: () => Array.from([...state.bannedAddresses])
   }
 }
 
