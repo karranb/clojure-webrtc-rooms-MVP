@@ -11,7 +11,7 @@
 - Hide kick/ban/set admin buttons on host row
 - Message System
 - Refactor
-- Signaling Server / host / clients validations
+- Signaling Server / host / clients validations (invalid jsons / empty names bug)
 - Client/Host: Throttling/Debounce
 - Design improvement
 
