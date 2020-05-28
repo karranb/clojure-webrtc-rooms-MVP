@@ -24,8 +24,19 @@ const Host = ({ $game, stateManager, sendSocketMessage, setSocketListener }) => 
     onClose(peerConnection, 'Banned')
   }
 
+  const setIsAdmin = (userId, isAdmin) => {
+    const room = stateManager.getRoom()
+    const user = room.getUser(userId).setIsAdmin(isAdmin)
+    stateManager.updateRoom(room => room.setUser(user))
+    broadcastMessage(PEER_TITLES.SET_ADMIN, {
+      userId: user.getId(),
+      isAdmin,
+    })
+    handleRenderUsers()
+  }
+
   const handleRenderUsers = () => {
-    renderUsers(stateManager, kick, ban)
+    renderUsers(stateManager, kick, ban, setIsAdmin)
   }
 
   const broadcastMessage = (title, message) => {
@@ -35,11 +46,11 @@ const Host = ({ $game, stateManager, sendSocketMessage, setSocketListener }) => 
       .forEach(connection => connection.sendPeerMessage(title, message))
   }
 
-  const quit = (title, message) => {
+  const quit = title => {
     stateManager
       .getRoom()
       .getConnections()
-      .forEach(connection => connection.close(title, message))
+      .forEach(connection => connection.close(title))
     const data = { title: TITLES.CLOSE_ROOM, id: stateManager.getRoom().getId() }
     sendSocketMessage(data)
     stateManager.webStateMachineSend('CLOSE')
@@ -57,15 +68,32 @@ const Host = ({ $game, stateManager, sendSocketMessage, setSocketListener }) => 
         stateManager.updateRoom(room => room.setUser(user))
         peerConnection.setUserId(parsedData.id)
         broadcastMessage(PEER_TITLES.GET_USERS, {
-          users: stateManager.getRoom().getUsers(),
+          users: stateManager.getRoom().getUsersData(),
         })
         handleRenderUsers()
         return
       case PEER_TITLES.GET_USERS:
         peerConnection.sendPeerMessage(EER_TITLES.GET_USERS, {
-          users: stateManager.getRoom().getUsers(),
+          users: stateManager.getRoom().getUsersData(),
         })
         return
+      case PEER_TITLES.SET_ADMIN:
+        const peerUser = stateManager.getRoom().getUser(peerConnection.getUserId())
+        if (peerUser.getIsAdmin()) {
+          setIsAdmin(parsedData.userId, parsedData.isAdmin)
+        }
+        return
+      case PEER_TITLES.CLOSE:
+        const peerUser2 = stateManager.getRoom().getUser(peerConnection.getUserId())
+        if (peerUser2.getIsAdmin()) {
+          if (parsedData.type === FORCED_CLOSE_TYPES.BANNED) {
+            ban(parsedData.userId)
+            return
+          }
+          if (parsedData.type === FORCED_CLOSE_TYPES.KICKED) {
+            kick(parsedData.userId)
+          }
+        }
     }
   })
 
@@ -82,7 +110,7 @@ const Host = ({ $game, stateManager, sendSocketMessage, setSocketListener }) => 
     const userId = peerConnection.getUserId()
     stateManager.updateRoom(room => room.removeConnection(connectionId).removeUser(userId))
     broadcastMessage(PEER_TITLES.GET_USERS, {
-      users: stateManager.getRoom().getUsers(),
+      users: stateManager.getRoom().getUsersData(),
     })
     sendSocketMessage({
       title: TITLES.CONNECTION_CLOSED,

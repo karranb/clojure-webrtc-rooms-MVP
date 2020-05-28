@@ -22,6 +22,8 @@ export const FORCED_CLOSE_TYPES = {
 export const PEER_TITLES = {
   STABILISH_CONNECTION: 'STABILISH-CONNECTION',
   GET_USERS: 'GET-USERS',
+  SET_ADMIN: 'SET-ADMIN',
+  CLOSE: 'CLOSE',
 }
 
 export const GAME_DIV_ID = '#game'

@@ -7,8 +7,10 @@
 ## WebRTC Client Available Messages
 
 ## ToDo
-- Admins system
+- Clear user data when quit/close room
+- Hide kick/ban/set admin buttons on host row
 - Message System
+- Refactor
 - Signaling Server / host / clients validations
 - Client/Host: Throttling/Debounce
 - Design improvement

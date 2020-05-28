@@ -43,24 +43,29 @@ const Room = (config = {}) => {
       const users = reduce((acc, user) => assoc(user.getId(), user, acc), {}, usersList)
       return Room({ ...state, users })
     },
-    setBannedAddress: address =>  {
-      const bannedAddresses = new Set([...state.bannedAddresses, address ])
+    setBannedAddress: address => {
+      const bannedAddresses = new Set([...state.bannedAddresses, address])
       return Room({ ...state, bannedAddresses })
     },
     getUser: userId => prop(userId, state.users),
-    getUsers: () => {
-      const host = state.host
-        ? assoc(state.host.getId(), { id: state.host.getId(), name: state.host.getName() }, {})
-        : {}
-      const otherUsers = map(user => ({ id: user.getId(), name: user.getName() }), state.users)
-      return mergeRight(host, otherUsers)
+    getUsersData: () => {
+      const host = state.host ? assoc(state.host.getId(), state.host, {}) : {}
+      return map(
+        user => ({
+          id: user.getId(),
+          name: user.getName(),
+          isHost: user.getIsHost(),
+          isAdmin: user.getIsAdmin(),
+        }),
+        mergeRight(state.users, host)
+      )
     },
     getUsersCount: () => state.usersCount,
     getSize: () => state.size,
     getConnections: () => values(state.connections),
     getConnection: connectionId => prop(connectionId, state.connections),
     getFirstConnection: () => head(values(state.connections)),
-    getBannedAddresses: () => Array.from([...state.bannedAddresses])
+    getBannedAddresses: () => Array.from([...state.bannedAddresses]),
   }
 }
 

@@ -8,15 +8,21 @@ import {
   querySelector,
 } from '_utils'
 
-export const RoomUsersItem = (user, kickFn, banFn) => {
-  console.log(user)
+export const RoomUsersItem = (user, handleKick, handleBan, setIsAdmin) => {
   const $nameText = compose(innerText(user.name), always(createElement('span')))()
-  const $kickButton = kickFn ? createButton('Kick', {}, () => kickFn(user.id)) : null
-  const $banButton = banFn ? createButton('Ban', {}, () => banFn(user.id)) : null
+  const $kickButton =
+    handleKick && !user.isHost ? createButton('Kick', {}, () => handleKick(user.id)) : null
+  const $banButton =
+    handleBan && !user.isHost ? createButton('Ban', {}, () => handleBan(user.id)) : null
+  const $setAdminButton = !user.isHost && setIsAdmin
+    ? createButton(user.isAdmin ? 'Remove Admin' : 'Set Admin', {}, () =>
+        setIsAdmin(user.id, !user.isAdmin)
+      )
+    : null
 
   return appendChildren(
     createElement('div'),
-    ...[$nameText, $kickButton, $banButton].filter(el => !!el)
+    ...[$nameText, $kickButton, $banButton, $setAdminButton].filter(el => !!el)
   )
 }
 
