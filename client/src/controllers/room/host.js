@@ -73,7 +73,7 @@ const Host = ({ $game, stateManager, sendSocketMessage, setSocketListener }) => 
         handleRenderUsers()
         return
       case PEER_TITLES.GET_USERS:
-        peerConnection.sendPeerMessage(EER_TITLES.GET_USERS, {
+        peerConnection.sendPeerMessage(PEER_TITLES.GET_USERS, {
           users: stateManager.getRoom().getUsersData(),
         })
         return

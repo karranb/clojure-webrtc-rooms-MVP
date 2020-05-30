@@ -17,8 +17,6 @@ const Room = (config = {}) => {
   }
 
   return {
-    getHost: () => state.host,
-    setHost: host => Room({ ...state, host }),
     setId: roomId => Room({ ...state, roomId }),
     getId: () => state.roomId,
     setName: name => Room({ ...state, name }),

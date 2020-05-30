@@ -39,7 +39,12 @@ const Client = ({ $game, stateManager, setSocketListener }) => {
   const handleRenderUsers = () => {
     if (stateManager.getUser().getIsAdmin()) {
       const peerConnection = stateManager.getRoom().getFirstConnection()
-      renderUsers(stateManager, kick(peerConnection), ban(peerConnection), setIsAdmin(peerConnection))
+      renderUsers(
+        stateManager,
+        kick(peerConnection),
+        ban(peerConnection),
+        setIsAdmin(peerConnection)
+      )
       return
     }
     renderUsers(stateManager)
@@ -50,9 +55,6 @@ const Client = ({ $game, stateManager, setSocketListener }) => {
     switch (parsedData.title) {
       case PEER_TITLES.STABILISH_CONNECTION:
         const user = stateManager.getUser()
-        stateManager.updateRoom(room =>
-          room.setHost(User({ id: parsedData.id, name: parsedData.name }))
-        )
         peerConnection.sendPeerMessage(PEER_TITLES.STABILISH_CONNECTION, {
           name: user.getName(),
           id: user.getId(),
@@ -60,11 +62,15 @@ const Client = ({ $game, stateManager, setSocketListener }) => {
         return
       case PEER_TITLES.GET_USERS:
         const users = values(parsedData.users).map(parsedUser =>
-          User({ id: parsedUser.id, name: parsedUser.name })
+          User({
+            id: parsedUser.id,
+            name: parsedUser.name,
+            isAdmin: parsedUser.isAdmin,
+            isHost: parsedUser.isHost,
+          })
         )
         stateManager.updateRoom(room => room.setUsers(users))
         handleRenderUsers()
-        // renderUsers(stateManager)
         return
       case PEER_TITLES.SET_ADMIN:
         const isAdmin = parsedData.isAdmin
@@ -73,7 +79,6 @@ const Client = ({ $game, stateManager, setSocketListener }) => {
         const updatedUser = room.getUser(userId).setIsAdmin(isAdmin)
         stateManager.updateRoom(room => room.setUser(updatedUser))
         stateManager.updateUser(user => user.setIsAdmin(isAdmin))
-        // renderUsers(stateManager)
         handleRenderUsers()
     }
   })

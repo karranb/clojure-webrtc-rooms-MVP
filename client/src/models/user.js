@@ -7,6 +7,7 @@ const DEFAULT = {
 }
 
 const User = (state = DEFAULT) => ({
+  getState: () => state,
   setIsAdmin: isAdmin => User({...state, isAdmin}),
   setId: id => User({ ...state, id }),
   setName: name => User({ ...state, name }),
