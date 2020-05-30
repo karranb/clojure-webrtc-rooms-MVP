@@ -4,7 +4,7 @@ import { PEER_TITLES, TITLES, FORCED_CLOSE_TYPES } from '_constants'
 import RoomScreen from '_views/room'
 import User from '_models/user'
 
-import { renderUsers } from './functions'
+import { clearStateData, renderUsers } from './functions'
 
 const Client = ({ $game, stateManager, setSocketListener }) => {
   const kick = curry((peerConnection, userId) => {
@@ -33,6 +33,7 @@ const Client = ({ $game, stateManager, setSocketListener }) => {
       .getRoom()
       .getFirstConnection()
       .close()
+      clearStateData(stateManager)
     stateManager.webStateMachineSend('CLOSE')
   }
 
@@ -93,13 +94,11 @@ const Client = ({ $game, stateManager, setSocketListener }) => {
           .setChannelResponse(parsedData.answer)
           .updateOnMessage(e => onPeerMessage(peerConnection, e))
           .updateOnOpen(() => {})
-          .updateOnClose(() => {
-            stateManager.webStateMachineSend('CLOSE')
-          })
+          .updateOnClose(quit)
         stateManager.updateRoom(room => room.setConnection(peerConnection))
         return
       case TITLES.CONNECTION_CLOSED:
-        stateManager.webStateMachineSend('CLOSE')
+        quit()
         return
     }
   }

@@ -4,7 +4,7 @@ import PeerConnection from '_models/peer-connection'
 import User from '_models/user'
 import { curry } from 'ramda'
 
-import { renderUsers } from './functions'
+import { clearStateData, renderUsers } from './functions'
 
 const Host = ({ $game, stateManager, sendSocketMessage, setSocketListener }) => {
   const kick = userId => {
@@ -53,6 +53,7 @@ const Host = ({ $game, stateManager, sendSocketMessage, setSocketListener }) => 
       .forEach(connection => connection.close(title))
     const data = { title: TITLES.CLOSE_ROOM, id: stateManager.getRoom().getId() }
     sendSocketMessage(data)
+    clearStateData(stateManager);
     stateManager.webStateMachineSend('CLOSE')
   }
 

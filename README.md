@@ -7,12 +7,10 @@
 ## WebRTC Client Available Messages
 
 ## ToDo
-- Clear user data when quit/close room
-- Hide kick/ban/set admin buttons on host row
 - Message System
 - Refactor
-- Document Messages with payloads
 - Signaling Server / host / clients validations (invalid jsons / empty names bug)
+- Document Messages with payloads
 - Client/Host: Throttling/Debounce
 - Design improvement
 
