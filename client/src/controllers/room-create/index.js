@@ -21,6 +21,8 @@ const CreateRoomController = ({ $game, stateManager, sendSocketMessage, setSocke
             name: parsedData.name,
             users: { [user.getId()]: user },
             size: parsedData.size,
+            isHost: true,
+            sendSocketMessage,
           })
         )
         stateManager.webStateMachineSend('CREATE')

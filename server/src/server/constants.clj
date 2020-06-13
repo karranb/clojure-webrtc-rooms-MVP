@@ -5,6 +5,7 @@
   ; :set-name "SET-NAME"
   :get-id "GET-ID"
   :create-room "CREATE-ROOM"
+  :update-room "UPDATE-ROOM"
   :create-room-fail "CREATE-ROOM-FAIL"
   :close-room "CLOSE-ROOM"
   :get-rooms "GET-ROOMS"

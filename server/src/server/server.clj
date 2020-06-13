@@ -5,6 +5,7 @@
     create-room
     close-room
     get-rooms
+    update-room
     join-room-request
     join-room-accept
     remove-connection]])
@@ -45,6 +46,7 @@
       ; (= data-title (:set-name titles)) (set-name channel data)
       (= data-title (:get-id titles)) (get-id channel)
       (= data-title (:create-room titles)) (create-room channel (:name data) (:size data) set-client)
+      (= data-title (:update-room titles)) (update-room channel (:publicInfo data) get-client)
       (= data-title (:close-room titles)) (close-room channel (:id data) set-client)
       (= data-title (:get-rooms titles)) (get-rooms channel)
       (= data-title (:connection-request titles)) (join-room-request channel data set-client)

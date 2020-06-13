@@ -7,7 +7,7 @@
 ## WebRTC Client Available Messages
 
 ## ToDo
-- Message System
+- Password
 - Refactor
 - Signaling Server / host / clients validations (invalid jsons / empty names bug)
 - Document Messages with payloads

@@ -1,5 +1,4 @@
 import Room from '_models/room'
-import PeerConnection from '_models/peer-connection'
 import { TITLES } from '_constants'
 import RoomListScreen, { RoomItem } from '_views/room-list'
 import { appendChildren, innerHTML } from '_utils'
@@ -15,12 +14,11 @@ const RoomListController = ({ $game, stateManager, sendSocketMessage, setSocketL
   const handleReceivedRooms = rooms => {
     const $roomsContainer = innerHTML('', document.querySelector('.roomsContainer'))
     const createOnPress = room => {
-      const peerConnection = PeerConnection({ sendSocketMessage }).newChannelRequest(room.getId())
-      stateManager.setRoom(room.setConnection(peerConnection))
+      stateManager.setRoom(room)
       stateManager.webStateMachineSend('JOIN')
     }
     rooms.forEach(({ name, id: roomId, size, connections: usersCount }) => {
-      const room = Room({ name, roomId, size, usersCount })
+      const room = Room({ name, roomId, size, usersCount, isHost: false })
       appendChildren(
         $roomsContainer,
         RoomItem({

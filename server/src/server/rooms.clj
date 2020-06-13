@@ -86,6 +86,13 @@
     (set-connection room-id connection-id content)
     (message (:user (get-connection room-id connection-id)) :connection-answer data)))
 
+(defn update-room [channel public-data get-client]
+  (let [
+      client (get-client channel)
+      room-id (:room-id client)
+    ]
+    (set-room room-id {:public-data public-data})))
+
 (defn create-room [channel name size set-client]
   (let [
       id (uuid)
@@ -111,7 +118,7 @@
       (println "not a host"))))
 
 (defn get-rooms-set []
-  {:rooms (map #(merge (select-keys % [:id :name :size]) {:connections (+ (count (:users %)) 1)}) (vals @rooms))})
+  {:rooms (map #(merge (select-keys % [:id :name :size :public-data]) {:connections (+ (count (:users %)) 1)}) (vals @rooms))})
 
 (defn get-rooms [channel]
   (message channel :get-rooms (get-rooms-set)))
