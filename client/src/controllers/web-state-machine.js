@@ -6,9 +6,7 @@ import RoomListController from './room-list'
 import RoomController from './room'
 import SigninController from './signin'
 
-const WebStateMachine = ({
-  sendSocketMessage, setSocketListener, $game, stateManager
-}) => {
+const WebStateMachine = ({ sendSocketMessage, setSocketListener, $game, stateManager }) => {
   const clear = () => innerHTML('', $game)
 
   const controllersArgs = { $game, stateManager, sendSocketMessage, setSocketListener }

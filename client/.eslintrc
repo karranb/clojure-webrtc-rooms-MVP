@@ -5,9 +5,19 @@
     "node": true,
     "es6": true
   },
+  "parserOptions": {
+    "ecmaVersion": 6
+  },
+  "extends": [
+    "airbnb/base",
+    "prettier"
+  ],
   "plugins": [
     "prettier"
   ],
+  "rules": {
+    "prettier/prettier": "error"
+  },
   "settings": {
     "import/parser": "babel-eslint",
     "import/resolver": {

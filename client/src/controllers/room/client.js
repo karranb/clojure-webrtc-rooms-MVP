@@ -4,20 +4,28 @@ import { PEER_TITLES, TITLES, FORCED_CLOSE_TYPES } from '_constants'
 import RoomScreen from '_views/room'
 import User from '_models/user'
 import Messages from '_models/messages'
-import PeerConnection from '_models/peer-connection'
 import { uuid } from '_utils'
+import PeerConnection from 'message-peer-connection'
 
 import { addMessage, clearStateData, renderUsers } from './functions'
 
 const Client = ({ $game, sendSocketMessage, stateManager, setSocketListener }) => {
   const roomId = stateManager.getRoom().getId()
   const connectionId = uuid()
+  let peerConnection = null
+
+  const quit = () => {
+    peerConnection.close()
+    clearStateData(stateManager)
+    stateManager.webStateMachineSend('CLOSE')
+  }
 
   const onClose = () => {
     quit()
   }
 
   const onOpen = () => {
+    // eslint-disable-next-line no-console
     console.log('connection opened')
   }
 
@@ -26,8 +34,8 @@ const Client = ({ $game, sendSocketMessage, stateManager, setSocketListener }) =
     sendSocketMessage({
       title: 'CONNECTION-REQUEST',
       offer: peerConnection.getState().pc.localDescription.sdp,
-      roomId: roomId,
-      connectionId: connectionId,
+      roomId,
+      connectionId,
     })
   }
 
@@ -52,12 +60,6 @@ const Client = ({ $game, sendSocketMessage, stateManager, setSocketListener }) =
       isAdmin,
     })
   })
-
-  const quit = () => {
-    peerConnection.close()
-    clearStateData(stateManager)
-    stateManager.webStateMachineSend('CLOSE')
-  }
 
   const handleRenderUsers = () => {
     if (stateManager.getUser().getIsAdmin()) {
@@ -107,11 +109,11 @@ const Client = ({ $game, sendSocketMessage, stateManager, setSocketListener }) =
   }
 
   const onSetAdmin = parsedData => {
-    const isAdmin = parsedData.isAdmin
-    const userId = parsedData.userId
+    const { isAdmin } = parsedData
+    const { userId } = parsedData
     const room = stateManager.getRoom()
     const updatedUser = room.getUser(userId).setIsAdmin(isAdmin)
-    stateManager.updateRoom(room => room.setUser(updatedUser))
+    stateManager.updateRoom(r => r.setUser(updatedUser))
     stateManager.updateUser(user => user.setIsAdmin(isAdmin))
     handleRenderUsers()
   }
@@ -137,12 +139,15 @@ const Client = ({ $game, sendSocketMessage, stateManager, setSocketListener }) =
       case PEER_TITLES.MESSAGE:
         addMessage(messages, parsedData.message)
         return
+      default:
+        // eslint-disable-next-line no-console
+        console.log('unhandled title', parsedData.title)
     }
   })
 
   const sendMessage = message => peerConnection.sendMessage(PEER_TITLES.MESSAGE, { message })
 
-  const handleConnectionAnswer = (parsedData) => {
+  const handleConnectionAnswer = parsedData => {
     peerConnection.setAnswer(parsedData.answer)
     stateManager.updateRoom(room => room.setConnection(peerConnection))
   }
@@ -156,10 +161,13 @@ const Client = ({ $game, sendSocketMessage, stateManager, setSocketListener }) =
       case TITLES.CONNECTION_CLOSED:
         quit()
         return
+      default:
+        // eslint-disable-next-line no-console
+        console.log('unhandled socket message', parsedData.title)
     }
   }
 
-  const peerConnection = PeerConnection()
+  peerConnection = PeerConnection()
     .updateOnMessage(onPeerMessage)
     .updateOnCreateOffer(onCreateOffer)
     .updateOnOpen(onOpen)

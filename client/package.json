@@ -13,10 +13,13 @@
   },
   "dependencies": {
     "@babel/plugin-syntax-dynamic-import": "^7.2.0",
+    "add": "^2.0.6",
     "cssnano": "^4.1.10",
+    "message-peer-connection": "^1.0.3",
     "ramda": "^0.27.0",
     "uuid": "^8.0.0",
-    "xstate": "^4.9.1"
+    "xstate": "^4.9.1",
+    "yarn": "^1.22.4"
   },
   "devDependencies": {
     "@babel/core": "^7.8.0",
@@ -26,8 +29,11 @@
     "babel-loader": "^8.0.5",
     "css-loader": "^2.1.1",
     "eslint": "^5.15.3",
+    "eslint-config-airbnb": "^18.1.0",
+    "eslint-config-prettier": "^6.11.0",
     "eslint-import-resolver-webpack": "^0.11.0",
     "eslint-plugin-prettier": "^3.0.1",
+    "eslint-plugin-import": "^2.21.2",
     "file-loader": "^3.0.1",
     "html-webpack-plugin": "^3.2.0",
     "mini-css-extract-plugin": "^0.5.0",

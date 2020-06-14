@@ -16,7 +16,7 @@ export const FORCED_CLOSE_TYPES = {
   KICKED: 'kicked',
   BANNED: 'banned',
   FULL: 'full',
-  WRONG_PWD: 'WRONG_PWD'
+  WRONG_PWD: 'WRONG_PWD',
 }
 
 export const PEER_TITLES = {

@@ -1,6 +1,7 @@
 import { TITLES, PEER_TITLES, FORCED_CLOSE_TYPES } from '_constants'
 import RoomScreen from '_views/room'
-import PeerConnection from '_models/peer-connection'
+import PeerConnection from 'message-peer-connection'
+
 import User from '_models/user'
 import Messages from '_models/messages'
 import { curry } from 'ramda'
@@ -10,6 +11,129 @@ import { addMessage, clearStateData, renderUsers } from './functions'
 const Host = ({ $game, stateManager, sendSocketMessage, setSocketListener }) => {
   const messages = Messages()
   const roomId = stateManager.getRoom().getId()
+
+  const quit = title => {
+    stateManager
+      .getRoom()
+      .getConnections()
+      .forEach(connection => connection.close(title))
+    const data = { title: TITLES.CLOSE_ROOM, id: roomId }
+    sendSocketMessage(data)
+    clearStateData(stateManager)
+    stateManager.webStateMachineSend('CLOSE')
+  }
+
+  const setPassword = password =>
+    stateManager.updateRoom(room =>
+      room.setPrivateInfo({ password }).setPublicInfo({ hasPassword: true })
+    )
+
+  const clearPassword = () =>
+    stateManager.updateRoom(room =>
+      room.setPrivateInfo({ password: null }).setPublicInfo({ hasPassword: false })
+    )
+
+  const commands = [
+    { regex: /^\/set_pwd /, fn: message => setPassword(message.split(' ').slice(-1)[0]) },
+    { regex: /^\/clear_pwd$/, fn: clearPassword },
+    { regex: /^\/q$/, fn: () => quit('close') },
+  ]
+
+  const getCommand = (user, message) => {
+    if (user !== stateManager.getUser()) {
+      return false
+    }
+    const command = commands.find(item => message.match(item.regex))
+    return command
+  }
+
+  const broadcastMessage = (title, message) => {
+    stateManager
+      .getRoom()
+      .getConnections()
+      .forEach(connection => connection.sendMessage(title, message))
+  }
+
+  const sendMessage = curry((user, message) => {
+    const command = getCommand(user, message)
+    if (command) {
+      command.fn(message)
+      return
+    }
+    const parsedMessage = `${user.getName()}: ${message}`
+    broadcastMessage(PEER_TITLES.MESSAGE, { message: parsedMessage })
+    addMessage(messages, parsedMessage)
+  })
+
+  const handleClose = (peerConnection, type) => {
+    const connectionId = peerConnection.getState().id
+    const { userId } = peerConnection.getState()
+    const user = stateManager.getRoom().getUser(userId)
+    stateManager.updateRoom(room => room.removeConnection(connectionId).removeUser(userId))
+    broadcastMessage(PEER_TITLES.USER_LEFT, {
+      userId,
+    })
+    sendSocketMessage({
+      title: TITLES.CONNECTION_CLOSED,
+      connectionId,
+      roomId,
+      type,
+    })
+    handleRenderUsers()
+    if (user) {
+      if (type === 'Kick') {
+        addMessage(messages, `user ${user.getName()} was kicked`)
+        return
+      }
+      if (type === 'Banned') {
+        addMessage(messages, `user ${user.getName()} was banned`)
+        return
+      }
+      addMessage(messages, `user ${user.getName()} left`)
+    }
+  }
+
+  const kick = userId => {
+    const room = stateManager.getRoom()
+    const user = room.getUser(userId)
+    const peerConnection = room.getConnection(user.getConnectionId())
+    peerConnection.close()
+    handleClose(peerConnection, 'Kick')
+  }
+
+  const ban = userId => {
+    const room = stateManager.getRoom()
+    const user = room.getUser(userId)
+    const peerConnection = room.getConnection(user.getConnectionId())
+    stateManager.updateRoom(r => r.setBannedAddress(peerConnection.getState().address))
+    peerConnection.close()
+    handleClose(peerConnection, 'Banned')
+  }
+
+  const setIsAdmin = (userId, isAdmin) => {
+    const room = stateManager.getRoom()
+    const user = room.getUser(userId).setIsAdmin(isAdmin)
+    stateManager.updateRoom(r => r.setUser(user))
+    broadcastMessage(PEER_TITLES.SET_ADMIN, {
+      userId: user.getId(),
+      isAdmin,
+    })
+    handleRenderUsers()
+    if (isAdmin) {
+      addMessage(messages, `user ${user.getName()} is now an admin`)
+      return
+    }
+    addMessage(messages, `user ${user.getName()} admin was removed`)
+  }
+
+  const handleRenderUsers = () => {
+    renderUsers(stateManager, kick, ban, setIsAdmin)
+  }
+
+  const handleForceClose = (peerConnection, type) => {
+    handleClose(peerConnection, type)
+    peerConnection.close()
+  }
 
   const onClose = (_, peerConnection) => {
     const data = {
@@ -25,7 +149,7 @@ const Host = ({ $game, stateManager, sendSocketMessage, setSocketListener }) => 
     if (e.candidate) {
       const room = stateManager.getRoom()
       const size = room.getSize()
-      const address = e.candidate.address
+      const { address } = e.candidate
       const isFull = size && size <= Object.keys(room.getConnections()).length
       const isBanned = room.getBannedAddresses().includes(address)
       peerConnection.setState({ address })
@@ -46,61 +170,6 @@ const Host = ({ $game, stateManager, sendSocketMessage, setSocketListener }) => 
     sendSocketMessage(data)
   }
 
-  const kick = userId => {
-    const room = stateManager.getRoom()
-    const user = room.getUser(userId)
-    const peerConnection = room.getConnection(user.getConnectionId())
-    peerConnection.close()
-    handleClose(peerConnection, 'Kick')
-  }
-
-  const ban = userId => {
-    const room = stateManager.getRoom()
-    const user = room.getUser(userId)
-    const peerConnection = room.getConnection(user.getConnectionId())
-    stateManager.updateRoom(room => room.setBannedAddress(peerConnection.getState().address))
-    peerConnection.close()
-    handleClose(peerConnection, 'Banned')
-  }
-
-  const setIsAdmin = (userId, isAdmin) => {
-    const room = stateManager.getRoom()
-    const user = room.getUser(userId).setIsAdmin(isAdmin)
-    stateManager.updateRoom(room => room.setUser(user))
-    broadcastMessage(PEER_TITLES.SET_ADMIN, {
-      userId: user.getId(),
-      isAdmin,
-    })
-    handleRenderUsers()
-    if (isAdmin) {
-      addMessage(messages, `user ${user.getName()} is now an admin`)
-      return
-    }
-    addMessage(messages, `user ${user.getName()} admin was removed`)
-  }
-
-  const handleRenderUsers = () => {
-    renderUsers(stateManager, kick, ban, setIsAdmin)
-  }
-
-  const broadcastMessage = (title, message) => {
-    stateManager
-      .getRoom()
-      .getConnections()
-      .forEach(connection => connection.sendMessage(title, message))
-  }
-
-  const quit = title => {
-    stateManager
-      .getRoom()
-      .getConnections()
-      .forEach(connection => connection.close(title))
-    const data = { title: TITLES.CLOSE_ROOM, id: roomId }
-    sendSocketMessage(data)
-    clearStateData(stateManager)
-    stateManager.webStateMachineSend('CLOSE')
-  }
-
   const onStablishConnection = (peerConnection, parsedData) => {
     const { password } = stateManager.getRoom().getPrivateInfo()
     if (password && password !== parsedData.password) {
@@ -116,7 +185,6 @@ const Host = ({ $game, stateManager, sendSocketMessage, setSocketListener }) => 
     })
     stateManager.updateRoom(room => room.setUser(user))
     peerConnection.setState({ userId: parsedData.id })
-    console.log(peerConnection.getState())
     broadcastMessage(PEER_TITLES.USER_JOINED, {
       id: parsedData.id,
       name: parsedData.name,
@@ -132,7 +200,6 @@ const Host = ({ $game, stateManager, sendSocketMessage, setSocketListener }) => 
 
   const onSetAdmin = (peerConnection, parsedData) => {
     const peerUser = stateManager.getRoom().getUser(peerConnection.getState().userId)
-    console.log(peerConnection.getState(), peerConnection.getState().userId)
     if (peerUser.getIsAdmin()) {
       setIsAdmin(parsedData.userId, parsedData.isAdmin)
     }
@@ -167,8 +234,14 @@ const Host = ({ $game, stateManager, sendSocketMessage, setSocketListener }) => 
         onPeerClose(peerConnection, parsedData)
         return
       case PEER_TITLES.MESSAGE:
-        sendMessage(stateManager.getRoom().getUser(peerConnection.getState().userId), parsedData.message)
+        sendMessage(
+          stateManager.getRoom().getUser(peerConnection.getState().userId),
+          parsedData.message
+        )
         return
+      default:
+        // eslint-disable-next-line no-console
+        console.log('unhandled message', parsedData.title)
     }
   })
 
@@ -178,39 +251,6 @@ const Host = ({ $game, stateManager, sendSocketMessage, setSocketListener }) => 
       name: user.getName(),
       id: user.getId(),
     })
-  }
-
-  const handleClose = (peerConnection, type) => {
-    const connectionId = peerConnection.getState().id
-    const userId = peerConnection.getState().userId
-    const user = stateManager.getRoom().getUser(userId)
-    stateManager.updateRoom(room => room.removeConnection(connectionId).removeUser(userId))
-    broadcastMessage(PEER_TITLES.USER_LEFT, {
-      userId,
-    })
-    sendSocketMessage({
-      title: TITLES.CONNECTION_CLOSED,
-      connectionId,
-      roomId,
-      type,
-    })
-    handleRenderUsers()
-    if (user) {
-      if (type === 'Kick') {
-        addMessage(messages, `user ${user.getName()} was kicked`)
-        return
-      }
-      if (type === 'Banned') {
-        addMessage(messages, `user ${user.getName()} was banned`)
-        return
-      }
-      addMessage(messages, `user ${user.getName()} left`)
-    }
-  }
-
-  const handleForceClose = (peerConnection, type) => {
-    handleClose(peerConnection, type)
-    peerConnection.close()
   }
 
   const onConnectionRequest = parsedData => {
@@ -231,43 +271,11 @@ const Host = ({ $game, stateManager, sendSocketMessage, setSocketListener }) => 
       case TITLES.CONNECTION_REQUEST:
         onConnectionRequest(parsedData)
         return
+      default:
+        // eslint-disable-next-line no-console
+        console.log('unhandled socket message', parsedData.title)
     }
   }
-
-  const setPassword = password =>
-    stateManager.updateRoom(room =>
-      room.setPrivateInfo({ password }).setPublicInfo({ hasPassword: true })
-    )
-
-  const clearPassword = () =>
-    stateManager.updateRoom(room =>
-      room.setPrivateInfo({ password: null }).setPublicInfo({ hasPassword: false })
-    )
-
-  const commands = [
-    { regex: /^\/set_pwd /, fn: message => setPassword(message.split(' ').slice(-1)[0]) },
-    { regex: /^\/clear_pwd$/, fn: clearPassword },
-    { regex: /^\/q$/, fn: () => quit('close') },
-  ]
-
-  const getCommand = (user, message) => {
-    if (user !== stateManager.getUser()) {
-      return false
-    }
-    const command = commands.find(item => message.match(item.regex))
-    return command
-  }
-
-  const sendMessage = curry((user, message) => {
-    const command = getCommand(user, message)
-    if (command) {
-      command.fn(message)
-      return
-    }
-    const parsedMessage = `${user.getName()}: ${message}`
-    broadcastMessage(PEER_TITLES.MESSAGE, { message: parsedMessage })
-    addMessage(messages, parsedMessage)
-  })
 
   setSocketListener(onMessage)
   RoomScreen({

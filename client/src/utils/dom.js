@@ -1,11 +1,13 @@
 import { always, compose, curry } from 'ramda'
 
 export const innerHTML = curry((value, $el) => {
+  // eslint-disable-next-line no-param-reassign
   $el.innerHTML = value
   return $el
 })
 
 export const innerText = curry((text, $el) => {
+  // eslint-disable-next-line no-param-reassign
   $el.innerText = text
   return $el
 })
@@ -36,7 +38,5 @@ export const createButton = (text, attributes, onClick) =>
     createElement('button', attributes)
   )()
 
-export const createP = (text, attributes) => compose(
-  innerText(text),
-  always(createElement('p', attributes))
-)()
+export const createP = (text, attributes) =>
+  compose(innerText(text), always(createElement('p', attributes)))()

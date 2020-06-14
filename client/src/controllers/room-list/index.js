@@ -23,7 +23,7 @@ const RoomListController = ({ $game, stateManager, sendSocketMessage, setSocketL
         $roomsContainer,
         RoomItem({
           room,
-          onPress: ()  => createOnPress(room)
+          onPress: () => createOnPress(room),
         })
       )
     })
@@ -31,10 +31,8 @@ const RoomListController = ({ $game, stateManager, sendSocketMessage, setSocketL
 
   const onMessage = ({ data }) => {
     const parsedData = JSON.parse(data)
-    switch (parsedData.title) {
-      case TITLES.GET_ROOMS:
-        handleReceivedRooms(parsedData.rooms)
-        return
+    if (parsedData.title === TITLES.GET_ROOMS) {
+      handleReceivedRooms(parsedData.rooms)
     }
   }
 

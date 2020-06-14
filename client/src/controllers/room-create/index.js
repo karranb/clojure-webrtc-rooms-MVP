@@ -11,22 +11,20 @@ const CreateRoomController = ({ $game, stateManager, sendSocketMessage, setSocke
 
   const onMessage = ({ data }) => {
     const parsedData = JSON.parse(data)
-    switch (parsedData.title) {
-      case TITLES.CREATE_ROOM:
-        stateManager.updateUser(user => user.setIsHost(true))
-        const user = stateManager.getUser()
-        stateManager.setRoom(
-          Room({
-            roomId: parsedData.id,
-            name: parsedData.name,
-            users: { [user.getId()]: user },
-            size: parsedData.size,
-            isHost: true,
-            sendSocketMessage,
-          })
-        )
-        stateManager.webStateMachineSend('CREATE')
-        return
+    if (parsedData.title === TITLES.CREATE_ROOM) {
+      stateManager.updateUser(user => user.setIsHost(true))
+      const user = stateManager.getUser()
+      stateManager.setRoom(
+        Room({
+          roomId: parsedData.id,
+          name: parsedData.name,
+          users: { [user.getId()]: user },
+          size: parsedData.size,
+          isHost: true,
+          sendSocketMessage,
+        })
+      )
+      stateManager.webStateMachineSend('CREATE')
     }
   }
 

@@ -1,7 +1,11 @@
 import { createElement, createButton, appendChildren } from '_utils'
 
 export const RoomItem = ({ room, onPress }) =>
-  createButton(`${room.getName()} - ${room.getState().usersCount}/${room.getSize()|| '∞'}`, {}, onPress)
+  createButton(
+    `${room.getName()} - ${room.getState().usersCount}/${room.getSize() || '∞'}`,
+    {},
+    onPress
+  )
 
 const RoomList = ({ $game, sendGetRoom, stateManager }) => {
   const $createRoomButton = createButton('Create Room', {}, () =>

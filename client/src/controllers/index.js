@@ -1,14 +1,12 @@
 import { interpret } from 'xstate'
 
-import WebStateMachine from './web-state-machine'
-
 import Room from '_models/room'
 import Socket from '_models/socket'
 import User from '_models/user'
-
+import WebStateMachine from './web-state-machine'
 
 const Controller = ({ $game }) => {
-  let state = {
+  const state = {
     user: User(),
     room: Room(),
     webStateMachine: null,
@@ -18,7 +16,7 @@ const Controller = ({ $game }) => {
 
   const stateManager = {
     setUser: user => {
-      state.user = user 
+      state.user = user
     },
     updateUser: fn => {
       state.user = fn(state.user)
@@ -39,10 +37,11 @@ const Controller = ({ $game }) => {
     },
   }
 
-  stateManager.setWebStateMachine(interpret(
-    WebStateMachine({ sendSocketMessage, setSocketListener, $game, stateManager })
-  ).start())
-
+  stateManager.setWebStateMachine(
+    interpret(
+      WebStateMachine({ sendSocketMessage, setSocketListener, $game, stateManager })
+    ).start()
+  )
 }
 
 export default Controller
